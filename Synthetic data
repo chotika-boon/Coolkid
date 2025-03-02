@@ -1,0 +1,48 @@
+import pandas as pd
+import random
+# Generate synthetic users
+users = pd.DataFrame({
+   "user_id": range(1, 6),
+   "name": ["Alice", "Bob", "Charlie", "David", "Eve"],
+   "preferred_cuisine": ["Thai", "Japanese", "Italian", "Korean", "Chinese"],
+   "preferred_bank": ["SCB", "KBank", "Krungsri", "SCB", "KBank"]
+})
+# Generate synthetic credit cards
+credit_cards = pd.DataFrame({
+   "card_id": range(1, 6),
+   "bank_name": ["SCB", "KBank", "Krungsri", "SCB", "KBank"],
+   "card_name": ["SCB Platinum", "KBank Gold", "Krungsri Standard", "SCB Titanium", "KBank Silver"],
+   "card_type": ["Platinum", "Gold", "Standard", "Titanium", "Silver"],
+   "cashback_rate": [5, 3, 2, 4, 3],
+   "discount_offers": ["10% at partners", "5% at selected restaurants", "7% cashback", "12% dining discount", "5% off"]
+})
+# Generate synthetic restaurants
+restaurants = pd.DataFrame({
+   "restaurant_id": range(1, 6),
+   "name": ["Thai House", "Sushi Master", "Pasta Corner", "Korean BBQ", "Dim Sum Palace"],
+   "cuisine_type": ["Thai", "Japanese", "Italian", "Korean", "Chinese"],
+   "average_price": [500, 1200, 800, 1000, 700],
+   "partner_banks": [["SCB", "KBank"], ["KBank", "Krungsri"], ["Krungsri", "SCB"], ["SCB", "KBank"], ["KBank", "SCB"]],
+   "special_promotions": ["Buy 1 Get 1 Free (SCB)", "15% Off (KBank)", "10% Cashback (Krungsri)", "Free Drink (SCB)", "5% Discount (KBank)"]
+})
+# Generate synthetic promotions
+promotions = pd.DataFrame({
+   "promotion_id": range(1, 6),
+   "bank_name": ["SCB", "KBank", "Krungsri", "SCB", "KBank"],
+   "restaurant_id": [1, 2, 3, 4, 5],
+   "card_id": [1, 2, 3, 4, 5],
+   "discount_percentage": [10, 15, 10, 12, 5],
+   "special_offer": ["Buy 1 Get 1", "15% Off", "10% Cashback", "Free Drink", "5% Discount"],
+   "valid_until": ["2025-12-31"] * 5
+})
+# Save synthetic data to CSV files
+users.to_csv("/mnt/data/users.csv", index=False)
+credit_cards.to_csv("/mnt/data/credit_cards.csv", index=False)
+restaurants.to_csv("/mnt/data/restaurants.csv", index=False)
+promotions.to_csv("/mnt/data/promotions.csv", index=False)
+# Display data to user
+import ace_tools as tools
+tools.display_dataframe_to_user(name="Users", dataframe=users)
+tools.display_dataframe_to_user(name="Credit Cards", dataframe=credit_cards)
+tools.display_dataframe_to_user(name="Restaurants", dataframe=restaurants)
+tools.display_dataframe_to_user(name="Promotions", dataframe=promotions)
