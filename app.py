@@ -2,6 +2,9 @@ import streamlit as st
 from PIL import Image
 import streamlit as st
 
+import streamlit as st
+from engine import RestaurantSelector, CardRecommender
+
 
 st.markdown(
     """
@@ -106,6 +109,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 col1, col2, col3 = st.columns((1, 0.5, 1))
 with col2:
     st.image(Image.open("logo.png"))
@@ -124,14 +128,62 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 📌 ช่องค้นหา
-st.markdown(
-    """
-    <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input type="text" class="search-input" placeholder="ที่เที่ยว กิจกรรมน่าสนใจ โรงแรม...">
-        <button class="search-button">ค้นหา</button>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# สร้าง instance ของ Backend
+restaurant_selector = RestaurantSelector()
+card_recommender = CardRecommender()
+
+# ใช้ Session State เก็บสถานะ
+if "selected_restaurant" not in st.session_state:
+    st.session_state["selected_restaurant"] = None
+if "search_query" not in st.session_state:
+    st.session_state["search_query"] = ""
+
+# ✅ ดึงร้านอาหารทั้งหมด
+all_restaurants = restaurant_selector.all_restaurants
+recommended_restaurants = restaurant_selector.recommend_restaurants()  # ✅ 5 ร้านแรก
+
+# ✅ UI ค้นหาร้านค้า
+st.subheader("🔍 ค้นหาร้านอาหาร")
+search_query = st.text_input("พิมพ์ชื่อร้านอาหารที่ต้องการค้นหา", st.session_state["search_query"]).strip()
+
+# ✅ ถ้ายังไม่มีการค้นหา ให้แสดงทุกตัวเลือกใน `selectbox`
+filtered_restaurants = all_restaurants if not search_query else [
+    r for r in all_restaurants if search_query.lower() in r.lower()
+]
+
+# ✅ แสดง `selectbox` ที่มีทุกร้าน
+selected_restaurant = st.selectbox("เลือกร้านอาหาร", ["เลือกจากรายการ"] + filtered_restaurants)
+
+if selected_restaurant and selected_restaurant == "เลือกจากรายการ":
+# ✅ แสดงผลเฉพาะ 5 ร้านแรกที่แนะนำ
+    st.subheader("⭐ ร้านแนะนำ")
+    for idx, restaurant in enumerate(recommended_restaurants, start=1):
+        st.write(f"**{idx}. {restaurant}**")  # ✅ แสดงเฉพาะ 5 ร้านแรก
+
+# ✅ บันทึกค่าร้านที่เลือก
+if selected_restaurant and selected_restaurant != "เลือกจากรายการ":
+    st.session_state["selected_restaurant"] = selected_restaurant
+    st.session_state["search_query"] = search_query  # ✅ บันทึกค่าค้นหา
+    st.success(f"✅ คุณเลือกร้าน {selected_restaurant}")
+
+    # ✅ **แสดงบัตรเครดิต สำหรับร้านที่เลือก**
+    st.subheader(f"💳 บัตรเครดิตที่แนะนำสำหรับ {selected_restaurant}")
+    recommended_card = card_recommender.recommend_cards(selected_restaurant)
+
+    if recommended_card:
+        st.markdown(f"""
+        **🎉 บัตรเครดิตที่แนะนำสำหรับร้าน {selected_restaurant}**  
+        - 💳 **{recommended_card.card_name}** ({recommended_card.bank})  
+        - 💰 **Cashback**: {recommended_card.cashback}%  
+        - 🎁 **Rewards**: {recommended_card.rewards} points per 100 THB  
+        - 🍽️ **Dining Discount**: {recommended_card.dining_discount}%  
+        - ✈️ **Travel Benefits**: {recommended_card.travel_benefit}  
+        """)
+    else:
+        st.warning(f"❌ ไม่มีบัตรเครดิตแนะนำสำหรับร้าน {selected_restaurant}")
+
+# ✅ ปุ่ม Reset ค้นหาและเลือกใหม่
+if st.button("🔄 เลือกร้านใหม่"):
+    st.session_state["selected_restaurant"] = None
+    st.session_state["search_query"] = ""  # ✅ รีเซ็ตช่องค้นหา
+    st.rerun()  # รีเฟรชหน้าใหม่
